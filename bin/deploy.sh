@@ -27,5 +27,11 @@ find . -maxdepth 1 \
 mv _site/* .
 rmdir _site/
 
+git add -fA
+git commit --allow-empty -m "$(git log -1 --pretty=%B) [ci skip]"
+git push -f -q origin ${pages_branch}
+
+git checkout -
+
 echo "Deployed successfully"
 exit 0
