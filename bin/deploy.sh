@@ -23,6 +23,8 @@ mv _site/* .
 rmdir _site/
 
 git add -A
+git reset bin/
+
 git commit --allow-empty -m "$(git log -1 --pretty=%B) [ci skip]"
 git push -f -q origin ${pages_branch}
 
