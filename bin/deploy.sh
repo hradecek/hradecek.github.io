@@ -17,6 +17,7 @@ find . -maxdepth 1 \
     ! -name '.git' \
     ! -name '.gitignore' \
     ! -name 'node_modules' \
+    ! -name 'bin' \
     -exec rm -rf {} \;
 
 mv _site/* .
