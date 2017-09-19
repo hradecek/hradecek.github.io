@@ -1,0 +1,21 @@
+// =============================================================================
+// Footer
+// =============================================================================
+
+.footer {
+  display: block;
+  padding-top: 15px;
+  margin-bottom: 15px;
+  border-top: 1px solid $base-border-color;
+  p {
+    font-size: 13px;
+    color: $gray-light;
+  }
+  a {
+    text-decoration: none;
+  }
+  img.cc-logo {
+    float: left;
+    padding: 5px 5px 0 0;
+  }
+}

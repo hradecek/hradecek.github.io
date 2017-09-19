@@ -1,0 +1,57 @@
+<nav class="header-nav {% if site.scrollappear_enabled %}appear{% endif %}">
+  <ul class="header-links">
+    {% if site.about_enabled == true %}
+      <li>
+        <a href="{{ 'about' | relative_url }}" title="About me">
+          <span class="fa fa-user"></span>
+        </a>
+      </li>
+    {% endif %}
+    {% if site.social.github %}
+      <li>
+        <a href="https://github.com/{{ site.social.github }}" rel="noreferrer noopener" target="_blank" title="GitHub">
+          <span class="fa fa-github"></span>
+        </a>
+      </li>
+    {% endif %}
+    {% if site.social.linkedin %}
+      <li>
+        <a href="https://www.linkedin.com/in/{{ site.social.linkedin }}" rel="noreferrer noopener" target="_blank" title="LinkedIn">
+          <span class="fa fa-linkedin-square"></span>
+        </a>
+      </li>
+    {% endif %}
+    {% if site.social.stackoverflow %}
+      <li>
+        <a href="https://stackoverflow.com/users/{{ site.social.stackoverflow }}" rel="noreferrer noopener" target="_blank" title="StackOverflow">
+          <span class="fa fa-stack-overflow"></span>
+        </a>
+      </li>
+    {% endif %}
+    {% if site.social.facebook %}
+      <li>
+        <a href="https://www.facebook.com/{{ site.social.facebook }}" rel="noreferrer noopener" target="_blank" title="Facebook">
+          <span class="fa fa-facebook-official"></span>
+        </a>
+      </li>
+    {% endif %}
+    {% if site.social.email %}
+      <li>
+        <a href="mailto:{{ site.social.email }}" title="Email">
+          <span class="fa fa-envelope"></span>
+        </a>
+      </li>
+    {% endif %}
+    {% if site.rss_enabled == true %}
+      <li>
+        <a href="{{ 'feed.xml' | relative_url }}" rel="noreferrer noopener" target="_blank" title="RSS">
+          <span class="fa fa-rss"></span>
+        </a>
+      </li>
+    {% endif %}
+  </ul>
+  <a href="{{ '/' | relative_url }}" title="{{ site.name }}">
+      <p class="header-logo" >{{ site.name }}</p><br>
+      <p class="header-sub-logo">{{ site.subname }}</p>
+  </a>
+</nav>

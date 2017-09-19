@@ -1,0 +1,31 @@
+---
+permalink: /404.html
+sitemap: false
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>{{ site.name }} | Page not found</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  {% if site.blog_theme == "light" %}
+    {% include stylesheet.html path="light" %}
+  {% else %}
+    {% include stylesheet.html path="dark" %}
+  {% endif %}
+</head>
+<body>
+  <main class="notfound-wrapper">
+    <div class="notfound-content">
+      <img src="{% asset_path 'silly-guard.jpg' %}" alt="Silly Cop">
+      <h1><a href="{{ '/' | relative_url }}" title="Back to homepage">0b110010100</a></h1>
+      <p>
+        Stop that! It's a silly!.<br>Get back to the <a href="{{ '/' | relative_url }}">homepage</a>!
+      </p>
+    </div>
+  </main>
+</body>
+</html>
