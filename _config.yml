@@ -48,6 +48,7 @@ exclude:
   - webpack.config.js
   - node_modules/
   - src/
+  - bin/
 plugins:
   - jekyll-assets
   - jekyll-paginate
