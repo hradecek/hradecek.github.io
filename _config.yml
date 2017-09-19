@@ -45,8 +45,9 @@ exclude:
   - Gemfile.lock
   - package.json
   - README.md
-  - vendor/
-  - yarn.lock
+  - webpack.config.js
+  - node_modules/
+  - src/
 plugins:
   - jekyll-assets
   - jekyll-paginate
