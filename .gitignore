@@ -14,3 +14,7 @@ Thumbs.db
 Gemfile.lock
 yarn.lock
 .scss-lint.yml
+
+# IntelliJ IDEA
+/.idea/
+*.iml
