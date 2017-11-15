@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 
 pages_branch="master"
+origin="https://${GH_TOKEN}@github.com/hradecek/hradecek.github.io.git"
 
 set -e
 echo "Started deploying"
@@ -26,8 +27,8 @@ rmdir _site/
 git add -A
 git reset bin/
 
-git commit --allow-empty -m "$(git log -1 --pretty=%B) [ci skip]"
-git push -f -q origin ${pages_branch}
+git commit --allow-empty -m "[ci skip] $(git log -1 --pretty=%B)"
+git push -f -q ${origin} ${pages_branch}
 
 git checkout -
 

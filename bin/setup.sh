@@ -2,7 +2,7 @@
 
 set -e
 
-sudo gem install bundler --conservative
+gem install bundler --conservative
 
 bundle check || bundle install
 bundle update
