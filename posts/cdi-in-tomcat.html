@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Silly programmer | Tomcat and CDI</title>
+  <meta name="description" content="Configure Tomcat together with CDI implementation Weld from the scratch together with simple web application as a demonstration">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta property="og:title" content="Tomcat and CDI">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://hradecek.github.io//posts/cdi-in-tomcat">
+  <meta property="og:description" content="Configure Tomcat together with CDI implementation Weld from the scratch together with simple web application as a demonstration">
+  <meta property="og:site_name" content="Silly programmer">
+  <!--meta property="og:image" content=""-->
+
+  <link rel="stylesheet" href="/assets/application.css">
+
+  <link href="https://hradecek.github.io//feed.xml" type="application/rss+xml" rel="alternate" title="Silly programmer Last 10 blog posts" />
+
+  
+    <link rel="stylesheet" href="/assets/dark.css">
+
+  
+</head>
+
+<body>
+  <main>
+    <div class="grid grid-centered">
+      <div class="grid-cell">
+        <nav class="header-nav appear">
+  <ul class="header-links">
+    
+      <li>
+        <a href="/about" title="About me">
+          <span class="fa fa-user"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="https://github.com/hradecek" rel="noreferrer noopener" target="_blank" title="GitHub">
+          <span class="fa fa-github"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="https://www.linkedin.com/in/ivo-hrádek-01baa8115" rel="noreferrer noopener" target="_blank" title="LinkedIn">
+          <span class="fa fa-linkedin-square"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="https://stackoverflow.com/users/772992/ivo-hrádek" rel="noreferrer noopener" target="_blank" title="StackOverflow">
+          <span class="fa fa-stack-overflow"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="mailto:ivohradek@gmail.com" title="Email">
+          <span class="fa fa-envelope"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="/feed.xml" rel="noreferrer noopener" target="_blank" title="RSS">
+          <span class="fa fa-rss"></span>
+        </a>
+      </li>
+    
+  </ul>
+  <a href="/" title="Silly programmer">
+      <p class="header-logo" >Silly programmer</p><br>
+      <p class="header-sub-logo">side effects guaranteed</p>
+  </a>
+</nav>
+
+        <article class="article appear">
+          <header class="article-header">
+            <h1>Tomcat and CDI</h1>
+            <div class="article-list-footer">
+              <span class="article-list-date">
+                September 12, 2017
+              </span>
+              
+                <span class="article-list-divider">-</span>
+                <div class="article-list-tags">
+                  
+                    <a href="/tag/tomcat">tomcat</a>
+                  
+                    <a href="/tag/java">java</a>
+                  
+                    <a href="/tag/cdi">cdi</a>
+                  
+                </div>
+              
+            </div>
+          </header>
+
+          <div class="article-content">
+            <p>Running different technologies or products to work together can be sometimes challenging, especially for beginners.
+Therefore, in the next article, we will show how to easily configure <a href="http://tomcat.apache.org">Tomcat</a> along with
+<a href="http://weld.cdi-spec.org">Weld</a>, the reference CDI implementation.</p>
+
+<h2 id="introduction">Introduction</h2>
+<p>Before you start ensure Tomcat is successfully installed on your machine. The installation itself is not particularly difficult
+and indeed very well documented and already covered by many tutorials and videos. I will use Tomcat 8.5.11  (for supported
+versions of Tomcat, see the official Weld’s <a href="https://docs.jboss.org/weld/reference/latest/en-US/html/environments.html#_tomcat">documentation</a>).</p>
+
+<h2 id="maven">Maven</h2>
+<p>At the beginning, we will create a <em>blank</em> maven project. For this purpose, use the command:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span>mvn archetype:generate <span class="nt">-DgroupId</span><span class="o">=</span>com.hradecek.cdi <span class="nt">-DartifactId</span><span class="o">=</span>tomcat-cdi <span class="nt">-DinteractiveMode</span><span class="o">=</span><span class="nb">false</span></code></pre></figure>
+
+<p>By editing the <code class="highlighter-rouge">pom.xml</code> file, we add <a href="https://maven.apache.org/plugins/maven-war-plugin/">Apache Maven WAR Plugin</a>:</p>
+
+<figure class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="nt">&lt;build&gt;</span>
+  <span class="nt">&lt;plugins&gt;</span>
+    <span class="nt">&lt;plugin&gt;</span>
+      <span class="nt">&lt;groupId&gt;</span>org.apache.maven.plugins<span class="nt">&lt;/groupId&gt;</span>
+      <span class="nt">&lt;artifactId&gt;</span>maven-war-plugin<span class="nt">&lt;/artifactId&gt;</span>
+      <span class="nt">&lt;version&gt;</span>3.1.0<span class="nt">&lt;/version&gt;</span>
+    <span class="nt">&lt;/plugin&gt;</span>
+  <span class="nt">&lt;/plugins&gt;</span>
+<span class="nt">&lt;/build&gt;</span></code></pre></figure>
+
+<p>This plugin will ensure that maven will not complain about the missing <code class="highlighter-rouge">web.xml</code> descriptor in time of compilation.
+Note that since version <code class="highlighter-rouge">3.0.0</code>, you do not have to explicitly set <code class="highlighter-rouge">failOnMissinWebXml</code> property,
+which default value has change to <code class="highlighter-rouge">false</code> (see <a href="https://maven.apache.org/plugins/maven-war-plugin/war-mojo.html#failOnMissingWebXml">documentation</a> for details).</p>
+
+<p><em>Update</em>: Moreover, starting with version <code class="highlighter-rouge">3.1.0</code>, default value is set to <code class="highlighter-rouge">false</code> only if the project depends on the
+Servlet 3.0 API or newer.</p>
+
+<h2 id="tomcat">Tomcat</h2>
+<p>Tomcat 8 has built-in support for Servlet API 3.1. (a.k.a. <a href="https://jcp.org/en/jsr/detail?id=340">https://jcp.org/en/jsr/detail?id=340</a>),
+which is part of Java EE 7 Web Profile, so we define it as a new dependency in our <code class="highlighter-rouge">pom.xml</code>:</p>
+
+<figure class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="nt">&lt;dependency&gt;</span>
+  <span class="nt">&lt;groupId&gt;</span>javax<span class="nt">&lt;/groupId&gt;</span>
+  <span class="nt">&lt;artifactId&gt;</span>javaee-web-api<span class="nt">&lt;/artifactId&gt;</span>
+  <span class="nt">&lt;version&gt;</span>7.0<span class="nt">&lt;/version&gt;</span>
+  <span class="nt">&lt;scope&gt;</span>provided<span class="nt">&lt;/scope&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span></code></pre></figure>
+
+<p>The <code class="highlighter-rouge">&lt;scope&gt;provided&lt;/scope&gt;</code> definition gives us the assurance that the libraries will <strong>not</strong> be included in the final
+web archive, because we want to use server-side libraries already included in Tomcat.</p>
+
+<h2 id="cdi">CDI</h2>
+<p>We use Weld for CDI support. Weld, as we already mentioned, is a reference implementation for CDI and has direct support for Tomcat.</p>
+
+<p>Because we want to compile our project against the <a href="http://cdi-spec.org">CDI specification</a>, we need to add the CDI API dependency to the project:</p>
+
+<figure class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="nt">&lt;dependency&gt;</span>
+  <span class="nt">&lt;groupId&gt;</span>javax.enterprise<span class="nt">&lt;/groupId&gt;</span>
+  <span class="nt">&lt;artifactId&gt;</span>cdi-api<span class="nt">&lt;/artifactId&gt;</span>
+  <span class="nt">&lt;version&gt;</span>2.0<span class="nt">&lt;/version&gt;</span>
+  <span class="nt">&lt;scope&gt;</span>provided<span class="nt">&lt;/scope&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span></code></pre></figure>
+
+<p>Dependency has defined <code class="highlighter-rouge">&lt;/scope&gt;</code> as <code class="highlighter-rouge">provided</code>, because it will be used only at the time of the project compilation, just like the Servlet API above.
+During the runtime, Weld libraries will be used, which means that libraries are not necessary for compilation process itself, but for application run:</p>
+
+<figure class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="nt">&lt;dependency&gt;</span>
+  <span class="nt">&lt;groupId&gt;</span>org.jboss.weld.servlet<span class="nt">&lt;/groupId&gt;</span>
+  <span class="nt">&lt;artifactId&gt;</span>weld-servlet<span class="nt">&lt;/artifactId&gt;</span>
+  <span class="nt">&lt;version&gt;</span>2.4.5.Final<span class="nt">&lt;/version&gt;</span>
+  <span class="nt">&lt;scope&gt;</span>runtime<span class="nt">&lt;/scope&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span></code></pre></figure>
+
+<p>For CDI support, we must add the <code class="highlighter-rouge">beans.xml</code> file (even if empty) as specification told us.
+In the <code class="highlighter-rouge">WEB-INF</code> folder, create a <code class="highlighter-rouge">beans.xml</code> file with the following content:</p>
+
+<figure class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="nt">&lt;beans</span> <span class="na">xmlns=</span><span class="s">"http://xmlns.jcp.org/xml/ns/javaee"</span>
+       <span class="na">xmlns:xsi=</span><span class="s">"http://www.w3.org/2001/XMLSchema-instance"</span>
+       <span class="na">xsi:schemaLocation=</span><span class="s">"http://xmlns.jcp.org/xml/ns/javaee
+                           http://xmlns.jcp.org/xml/ns/javaee/beans_2_0.xsd"</span>
+       <span class="na">version=</span><span class="s">"2.0"</span>
+       <span class="na">bean-discovery-mode=</span><span class="s">"all"</span><span class="nt">&gt;</span>
+<span class="nt">&lt;/beans&gt;</span></code></pre></figure>
+
+<p>Before version CDI 2.0, we would have have to define an appropriate resource factory either via Tomcat’s <code class="highlighter-rouge">META-INF/context.xml</code> file:</p>
+
+<figure class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="nt">&lt;Context&gt;</span>
+  <span class="nt">&lt;Resource</span> <span class="na">name=</span><span class="s">"BeanManager"</span>
+            <span class="na">auth=</span><span class="s">"Container"</span>
+            <span class="na">type=</span><span class="s">"javax.enterprise.inject.spi.BeanManager"</span>
+            <span class="na">factory=</span><span class="s">"org.jboss.weld.resources.ManagerObjectFactory"</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/Context&gt;</span></code></pre></figure>
+
+<p>or standard <code class="highlighter-rouge">WEB-INF/web.xml</code> file:</p>
+
+<figure class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="nt">&lt;web-app</span> <span class="na">xmlns=</span><span class="s">"http://xmlns.jcp.org/xml/ns/javaee"</span>
+         <span class="na">xmlns:xsi=</span><span class="s">"http://www.w3.org/2001/XMLSchema-instance"</span>
+         <span class="na">xsi:schemaLocation=</span><span class="s">"http://xmlns.jcp.org/xml/ns/javaee
+         http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.webxsd"</span>
+         <span class="na">version=</span><span class="s">"3.1"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;resource-env-ref&gt;</span>
+        <span class="nt">&lt;resource-env-ref-name&gt;</span>BeanManager<span class="nt">&lt;/resource-env-ref-name&gt;</span>
+        <span class="nt">&lt;resource-env-ref-type&gt;</span>javax.enterprise.inject.spi.BeanManager<span class="nt">&lt;/resource-env-ref-type&gt;</span>
+    <span class="nt">&lt;/resource-env-ref&gt;</span>
+<span class="nt">&lt;/web-app&gt;</span></code></pre></figure>
+
+<p>Now everything is set up and ready for use. When deploying application, notice Tomcat also confirms (in log messages) that CDI is available for us:</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">Tomcat 7+ detected, CDI injection will be available in Servlets, Filters and Listeners.</code></pre></figure>
+
+<p>The fully working project is available at <a href="https://github.com/hradecek/tomcat-cdi">gitub.com/hradecek/tomcat-cdi</a>.</p>
+
+<p>Enjoy!</p>
+
+          </div>
+
+          <div class="article-share">
+            
+            
+            <a href="https://twitter.com/home?status=Tomcat+and+CDI - https://hradecek.github.io//posts/cdi-in-tomcat" title="Share on Twitter" rel="noreferrer noopener" target="_blank">
+              <svg viewBox="0 0 512 512"><path d="M492 109.5c-17.4 7.7-36 12.9-55.6 15.3 20-12 35.4-31 42.6-53.6 -18.7 11.1-39.4 19.2-61.5 23.5C399.8 75.8 374.6 64 346.8 64c-53.5 0-96.8 43.4-96.8 96.9 0 7.6 0.8 15 2.5 22.1 -80.5-4-151.9-42.6-199.6-101.3 -8.3 14.3-13.1 31-13.1 48.7 0 33.6 17.2 63.3 43.2 80.7C67 210.7 52 206.3 39 199c0 0.4 0 0.8 0 1.2 0 47 33.4 86.1 77.7 95 -8.1 2.2-16.7 3.4-25.5 3.4 -6.2 0-12.3-0.6-18.2-1.8 12.3 38.5 48.1 66.5 90.5 67.3 -33.1 26-74.9 41.5-120.3 41.5 -7.8 0-15.5-0.5-23.1-1.4C62.8 432 113.7 448 168.3 448 346.6 448 444 300.3 444 172.2c0-4.2-0.1-8.4-0.3-12.5C462.6 146 479 129 492 109.5z"/></svg>
+            </a>
+            <a href="https://www.facebook.com/sharer/sharer.php?u=https://hradecek.github.io//posts/cdi-in-tomcat" title="Share on Facebook" rel="noreferrer noopener" target="_blank">
+              <svg viewBox="0 0 512 512"><path d="M288 192v-38.1c0-17.2 3.8-25.9 30.5-25.9H352V64h-55.9c-68.5 0-91.1 31.4-91.1 85.3V192h-45v64h45v192h83V256h56.4l7.6-64H288z"/></svg>
+            </a>
+            <a href="https://plus.google.com/share?url=https://hradecek.github.io//posts/cdi-in-tomcat" title="Share on Google+" rel="noreferrer noopener" target="_blank">
+              <svg viewBox="0 0 128 128"><path d="M40.7 55.9v16.1c0 0 15.6 0 22 0C59.2 82.5 53.8 88.2 40.7 88.2c-13.3 0-23.7-10.8-23.7-24.2s10.4-24.2 23.7-24.2c7.1 0 11.6 2.5 15.8 5.9 3.3-3.3 3.1-3.8 11.6-11.9 -7.2-6.6-16.8-10.6-27.4-10.6C18.2 23.3 0 41.5 0 64c0 22.5 18.2 40.7 40.7 40.7 33.6 0 41.8-29.3 39-48.8H40.7zM113.9 56.7V42.6h-10.1v14.1H89.4v10.1h14.5v14.5h10.1V66.8H128V56.7H113.9z"/></svg>
+            </a>
+          </div>
+
+          
+            <div id="disqus_thread" class="article-comments"></div>
+            <script src="https://hradecek.disqus.com/embed.js" async defer></script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+          
+        </article>
+        <footer class="footer appear">
+  <p>
+    <a rel="license" href="http://creativecommons.org/licenses/by/4.0/deed.en_US"><img class="cc-logo" alt="Creative Commons License" src="https://i.creativecommons.org/l/by/4.0/80x15.png"></a>This blog is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/deed.en_US">Creative Commons Attribution 4.0 International License</a>.
+  </p>
+  <p>
+    This blog uses <a href="https://github.com/nielsenramon/chalk" title="Jekyll theme" target="_blank">Chalk</a> jekyll theme,
+    made by <a href="/about" title="Theme author" target="_blank">Nielsen Ramon</a>.
+  </p>
+</footer>
+
+      </div>
+    </div>
+  </main>
+  
+
+<script src="/assets/application.bundle.js"></script>
+
+
+</body>
+</html>

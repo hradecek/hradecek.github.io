@@ -1,4 +1,0 @@
----
-slug: cdi
-name: CDI
----
